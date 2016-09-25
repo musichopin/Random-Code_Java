@@ -9,47 +9,99 @@
 package slidenerd;
 
 import java.io.BufferedReader;
-import java.io.IOException;
+//import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
 
 public class VivzBankProgram {
+	
+    static int numberOfCustomers = 0;	
+
 
     public static void main(String[] args) throws Exception {
+//    	normal'de exceptionlarýn try catch ile çözümlenmesi istenirdi
+//    	ayrýca main metod'da uzun olan statement'lar baþka metod ve/veya (inner) class'a yerleþtirilip çaðýrýlmalýydý
 
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in)); //input iÃ§in
-        int numberOfCustomers = 0;		
-        Bank bank = new Bank();
-        Customer[] c = bank.getCustomer(); // yapÄ±lÄ±ÅŸ olarak Account a = customer.getAccount();'a benzer
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in)); 
+        Bank bank = new Bank(); // while loop'un dýþýnda olma nedeni 1 tane banka yaratmamýz
+//      alt: customer sayýsý main metod'da belirlenirdi
+//      Customer[] customers = new Customer[1000];
+//      Bank bank = new Bank(customers);
+        Customer[] c = bank.getCustomer(); 
+        // Customer[] customers = new Customer[1000];
+        // Customer[] c =customers; (" Customer[] c = new Customer[1000] ")
+        // yapý olarak "Account a = customer.getAccount();" a benzer (Account'ta ise getAccountNumber vardýr)
+        // loop'un dýþýnda olma nedeni her döngüde yeni array yaratmak istemememiz ve memory'den tasarruf etmek
         while (true) { // with true, loop continuously runs
-            System.out.println("Please Enter your choice:");
+            System.out.println("\nPlease Enter your choice:");
             System.out.println("1: Add Customer");
             System.out.println("2: Deposit Money");
             System.out.println("3: Withdraw Money");
             System.out.println("4: Check Balance");
             System.out.println("5: Calculate Interest");
-            System.out.println("6: Exit");
+            System.out.println("6: Exit\n");
             int choice = Integer.parseInt(bufferedReader.readLine()); 
-            // bufferedReader.readLine() int olarak input edildiÄŸi iÃ§in parse ediliyor
+//         alt:
+//         Scanner input = new Scanner(System in) for asking then int choice = input.nextInt();
             switch (choice) {
-                case 1:
-
+                case 1: // Add Customer
                     System.out.println("Creating an account for a new customer: ");
                     System.out.println("Please Enter the initial amount in your account: ");
-                    double bal = Double.parseDouble(bufferedReader.readLine());
+                    double bal = Double.parseDouble(bufferedReader.readLine()); // initial value
+                    
+//                    (main menüye getirir)
+                    if (bal<100) { // condition
+                    	System.out.println("Sorry, you are required to deposit min of 100 bucks "
+                    			+ "\nat the first time you create an account.");
+                    	break; // 2 tane break command olabilir ayný case'de
+                    }
+                    
+//                    alt1: submenu'de döngü veya sistemden çýkýþ
+//                    double bal;
+//                    do { System.out.println("(It should be minimum of 100 bucks. "
+//                    		+ "\nor Press 00 to exit.) ");
+//                    bal = Double.parseDouble(bufferedReader.readLine()); // initial value and change
+//                    if (bal==00) System.exit(0);
+//                    } while (bal<100); // condition
+                    
+//                    alt2: main menu veya submenu'de döngü
+//                    	while (bal < 100) { // condition
+//                        	System.out.println("Sorry, you are required to deposit min of 100 bucks. "
+//                        			+ "\nPlease try again or press 00 to go to main menu.");
+//                        	bal = Double.parseDouble(bufferedReader.readLine()); // change
+//                        	if (bal==00) break;
+//                        }
+//                    	if (bal==00) break;
+                    	
                     System.out.println("Please Enter your Account Number: ");
-                    String acc = bufferedReader.readLine();
-                    Account account = new Account(bal, acc);
+                    String acc = bufferedReader.readLine(); 
+                    // *ayný curly bracket içerisinde kaldýðýndan diðer case'ler tarafýndan da 
+                    // (initialize edildikten sonra) kullanýldý (string ve int'ten farklý bir format)*
+                	Account account;
+                    for (int i = 0; i < numberOfCustomers; i++) { // ***THIS SECTION NOT COMPLETED***
+                        Account temp = c[i].getAccount();
+                        String accTemp = temp.getAccountNumber();
+                        while (accTemp.equals(acc)) {
+                            System.err.println("Please select a different Account Number: ");
+                            acc = bufferedReader.readLine();
+                        }
+                    }
+                    account = new Account(bal, acc);          
+//                    account'un banka üzerinden yaratýlmasý mantýk olarak daha doðru:
+//                    account = bank.createAccount(bal, acc);
+                    
                     System.out.println("Please Enter your Name: ");
                     String name = bufferedReader.readLine();
-                    Customer customer = new Customer(name, account);
-                    c[numberOfCustomers] = customer;
-                    System.out.println("Customer Name: " + name + " Balance: " + bal + " Account Number: " + acc + " was added successfully to the database");
+                    Customer customer = new Customer(name, account); // class initialized
+                    c[numberOfCustomers] = customer; // ***each member of class array initialized (KEY POINT)***
+                    System.out.println("Customer Name: " + name + ", Balance: " + account.getBalance() + ", Account Number: " + acc 
+                    		+ " \nwas added successfully to the database");
                     numberOfCustomers++;
 
-                    break; // break komutu olmasÄ±na raÄŸmen while loop yÃ¼zÃ¼nden (case 6 seÃ§ilene kadar) dÃ¶ngÃ¼ oluÅŸur
-                case 2:
+                    break; // ***bu break komutu sadece switch statement'dan çýkmayý saðlýyor,
+                    // while loop ile ilgisi yok***
+                case 2: // Deposit Money
                     /*
                      CASE 1
                      0 customers added
@@ -83,25 +135,24 @@ public class VivzBankProgram {
                         System.err.println("Account Number Not Found");
                     } else {
                         boolean found = false;
-                        for (int i = 0; i < numberOfCustomers; i++) { 
+                        for (int i = 0; i < numberOfCustomers; i++) {
                         	// we are browsing through all the customers with the help of for loop
-                            Account temp = c[i].getAccount(); // c[i] array'de value'yu print etme ÅŸeklidir
-                            // Customer[] c = bank.getCustomer(); -> Account temp = c[i].getAccount(); sÄ±rasÄ±na dikkat
-                            // type Ä± Account olan variable temp'e assign ediliyor
+                            Account temp = c[i].getAccount();
                             String accTemp = temp.getAccountNumber();
                             if (accTemp.equals(acc)) {
                                 System.err.println("Please Enter the amount to deposit: ");
                                 double money = Double.parseDouble(bufferedReader.readLine());
                                 temp.deposit(money);
-                                found = true; // boolean yerine else de kullanÄ±labilirdi
+                                found = true; // ***boolean yerine else kullanýlamazdý***
+                                break; // breaks out of for loop if account is matched
                             }
                         }
-                        if (found == false) {
+                        if (!found) { 
                             System.err.println("Account Number Not Found");
                         }
                     }
                     break;
-                case 3:
+                case 3: // Withdraw Money
                     System.err.println("Enter account number");
                     acc = bufferedReader.readLine();
                     if (numberOfCustomers == 0) {
@@ -115,15 +166,16 @@ public class VivzBankProgram {
                                 System.err.println("Please Enter the amount to withdraw: ");
                                 double money = Double.parseDouble(bufferedReader.readLine());
                                 temp.withdraw(money);
-                                found = true;
+                                found = true; // ***boolean yerine else kullanýlamazdý***
+                                break; // breaks out of for loop if account is matched
                             }
                         }
-                        if (found == false) {
+                        if (found == false) { 
                             System.err.println("Account Number Not Found");
                         }
                     }
                     break;
-                case 4:
+                case 4: // Check Balance
                     System.err.println("Enter account number");
                     acc = bufferedReader.readLine();
                     if (numberOfCustomers == 0) {
@@ -135,7 +187,10 @@ public class VivzBankProgram {
                             String accTemp = temp.getAccountNumber();
                             if (accTemp.equals(acc)) {
                                 System.out.println("Balance is: "+temp.getBalance());
+//                             bakiyenin (case 5 gibi) banka üzerinden belirlenmesi mantýk olarak daha doðru olurdu
+//                             (ayný durum case 2, 3 ve 4 için de geçerli)
                                 found = true;
+                                break; // breaks out of for loop if account is matched
                             }
                         }
                         if (found == false) {
@@ -143,7 +198,7 @@ public class VivzBankProgram {
                         }
                     }
                     break;
-                case 5:
+                case 5: // Calculate Interest
                     System.err.println("Enter account number");
                     acc = bufferedReader.readLine(); // input edilen account number acc variable da depolanÄ±yor
                     if (numberOfCustomers == 0) {
@@ -156,6 +211,7 @@ public class VivzBankProgram {
                             if (accTemp.equals(acc)) { // compare the account number with the  input of the user
                                 bank.calculateInterest(c[i]); // c[i]: current customer
                                 found = true;
+                                break; // breaks out of for loop if account is matched
                             }
                         }
                         if (found == false) {
@@ -163,19 +219,22 @@ public class VivzBankProgram {
                         }
                     }
                     break;
-                case 6:
-
-                    System.exit(0);
+                case 6: // Exit
+                    System.exit(0); // main metodu komple sonlandýrýr
                     break;
                 default:
-                    break;
+                    break; 
+                    // sonda olduðu için break zorunlu deðil ama daha anlaþýlýr olduðu için tercih edilir
+                    
+            } // end of switch sta
+//            ***burada "break;" olsaydý yapýlan iþlemi "kaydeder" ve while loop'dan çýkardý***
+//            "continue;" olsaydý yapýlan iþlemi "kaydeder" ve while loop'a devam ederdi (anlamsýz)
 
-            }
+        } // end of while loop
+        
+    } // end of main method
 
-        }
-    }
-
-}
+} // end of VivzBankProgram class
 
 class Bank {
 
@@ -189,13 +248,30 @@ class Bank {
      calculater interest amount on that balance and show the user what can be their total
      */
 
-    public void calculateInterest(Customer customer) { 
+//    alt1/tür1: customer arrayi main metod'da oluþturulsaydý:
+//    public Bank(Customer[] customers) {
+//		this.customers = customers;
+//	}
+    
+//    alt2/tür2: customer sayýsý main metodda belirlenseydi:
+//    public Bank(int cust_no) {
+//		this.customers = new Customer[cust_no];
+//	}
+    
+//    alt3/tür3: pass edilen argument sadece metod içerisinde kullanýlabilir
+    
+//    *not yukarýdaki alternatif durumlar hem arrayin (veya listin) oluþumu için hem de 
+//    array (list) elemanlarýnýn initialize edilmesi durumunda olmak üzere 6 (3x2) farklý durum oluþturur*
+    
+    
+	public void calculateInterest(Customer customer) { 
+		// customer'ýn array elemaný olmasýna raðmen Customer türünde olmasýna dikkat
         Account a = customer.getAccount(); 
         // customer.getAccount(); type Ä± Account olan a'ya atanÄ±yor diye dÃ¼ÅŸÃ¼n
         double bal = a.getBalance();
         double interestAmount = bal * interestRate / 100;
         double totalBalance = bal + interestAmount;
-        System.out.println("Interest amount " + interestAmount + " Total money after adding interest: " + totalBalance);
+        System.out.println("Interest amount " + interestAmount + " \nTotal money after adding interest: " + totalBalance);
     }
 
     public double getInterestRate() {
@@ -209,24 +285,25 @@ class Bank {
     public Customer[] getCustomer() {
         return customers; 
     }
-}
+    
+} // end of Bank class
 
 class Account {
-
-    private double balance = 100;
+	double tempBalance;
+    private double balance=100;
     private String accountNumber;
     private boolean firstTime = true;
+ // tempBalance declared as field rather than local variable
+ // so that it is not created every time withdraw()
+ // it is being used is called and not destroyed every time
+//  withdraw() is terminated
 
     public Account(String acc) {
         accountNumber = acc;
     }
 
     public Account(double bal, String acc) {
-        if (bal >= 100) {
-            balance = bal;
-        } else {
-            balance = 100;
-        }
+        balance += bal;
         accountNumber = acc;
     }
     /*
@@ -239,7 +316,7 @@ class Account {
         if (howMuch > 0) {
             balance = balance + howMuch;
             System.out.println(howMuch + " was successfully deposited in your account."
-                    + " The new balance of your account is " + balance);
+                    + " \nThe new balance of your account is " + balance);
         } else {
             System.err.println("Please ensure the amount to be deposited is not negative.");
         }
@@ -257,37 +334,37 @@ class Account {
      */
 
     public void withdraw(double howMuch) {
-        if (howMuch >= 0) {
+        if (howMuch > 0) {
+        	tempBalance = balance;
             if (firstTime == true) {
-                double tempBalance = balance;
                 //let us say your balance=200, so tempBalance=200
                 //if howMuch=150, then tempBalance-howMuch 
                 //shows the money that remains after withdrawing=200-150=50
                 //it means after removing howMuch from your temporary balance
                 //the amount remaining is 50 which is not acceptable
-                tempBalance = tempBalance - howMuch;//50
-                if (tempBalance >= 100) {
+                tempBalance = tempBalance - howMuch; // alt: "double tempBalance;" ve "tempBalance = balance - howMuch;"
+                if (tempBalance >= 100) { // alt: if ((balance - howMuch) >= 100) ... 
                     balance = balance - howMuch;
-                    System.out.println("You withdrew " + howMuch + " from your account. Your new balance is " + balance);
+                    System.out.println("You withdrew " + howMuch + " from your account. \nYour new balance is " + balance);
+                    firstTime = false; // counter yerine boolean'ýn kullanýlma nedeni withdraw sayýsýný tutmamamýz
                 } else {
 
                     System.err.println("Insufficient balance to remove " + howMuch);
                 }
-                firstTime = false;
             } else {
                 Bank bank = new Bank();
-                double tempBalance = balance;
                 tempBalance = tempBalance - howMuch - bank.getTransactionFees();
                 if (tempBalance >= 100) {
                     balance = balance - howMuch - bank.getTransactionFees();
-                    System.out.println("You withdrew " + howMuch + " from your account. The transaction fees is " + bank.getTransactionFees() + ". Your new balance is " + balance);
+                    System.out.println("You withdrew " + howMuch + " from your account. "
+                    		+ "\nThe transaction fees is " + bank.getTransactionFees() + ". Your new balance is " + balance);
                 } else {
 
                     System.err.println("Insufficient balance to remove " + howMuch);
                 }
             }
         } else {
-            System.err.println("Please ensure the amount to be withdrawn is not negative");
+            System.err.println("Please ensure the amount to be withdrawn is positive");
         }
     }
 
@@ -299,7 +376,7 @@ class Account {
         return accountNumber;
     }
 
-}
+} // end of Account class
 
 class Customer {
 
@@ -311,12 +388,13 @@ class Customer {
         account = a;
     }
 
+//    not used
     public void display() {
         System.out.println("Name: " + name + ", Account Number: " + 
     account.getAccountNumber() + ", Balance: " + account.getBalance()); 
-    // account yerine getAccount() da yazÄ±labilirdi
     }
 
+// not used
     public String getName() {
         return name;
     }
@@ -325,4 +403,5 @@ class Customer {
 
         return account;
     }
-}
+    
+} // end of Customer class
